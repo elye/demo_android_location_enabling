@@ -70,5 +70,4 @@ class LocationManager(val activity: Activity) {
         }
         activity.registerReceiver(gpsSwitchStateReceiver, IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
     }
-
 }
