@@ -2,15 +2,19 @@ package com.elyeproj.locationdetection
 
 import android.Manifest
 import android.app.Activity
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Build
 import android.support.v4.content.ContextCompat
 
-class LocationManager(val activity : Activity) {
+class LocationManager(val activity: Activity) {
 
     private var allowAskForPermission = true
+    private var gpsSwitchStateReceiver: BroadcastReceiver? = null
 
     fun checkPermissionAndRequest(permissionCode: Int) {
         if (!isLocationPermissionGranted() && allowAskForPermission) {
@@ -36,6 +40,7 @@ class LocationManager(val activity : Activity) {
             allowAskForPermission = false
             onReject()
         } else {
+            allowAskForPermission = false
             onDenied()
         }
     }
@@ -46,4 +51,24 @@ class LocationManager(val activity : Activity) {
         return locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER) ||
                 locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
     }
+
+    fun removeSwitchStateReceiver() {
+        gpsSwitchStateReceiver?.let {
+            activity.unregisterReceiver(gpsSwitchStateReceiver)
+            gpsSwitchStateReceiver = null
+        }
+    }
+
+    fun locationDetection(onDetectChange: () -> Unit) {
+        removeSwitchStateReceiver()
+        gpsSwitchStateReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                if (intent.action.matches("android.location.PROVIDERS_CHANGED".toRegex())) {
+                    onDetectChange()
+                }
+            }
+        }
+        activity.registerReceiver(gpsSwitchStateReceiver, IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
+    }
+
 }

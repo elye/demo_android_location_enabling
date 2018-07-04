@@ -1,8 +1,13 @@
 package com.elyeproj.locationdetection
 
-import android.support.v7.app.AppCompatActivity
+import android.content.Context
 import android.os.Bundle
 import android.support.v4.app.Fragment
+import android.support.v7.app.AppCompatActivity
+import android.content.Intent
+import android.content.BroadcastReceiver
+import android.content.IntentFilter
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -11,7 +16,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private val locationManager = LocationManager(this)
-    private var allowAskForPermission = true
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,24 +25,31 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         openFragment()
-        if (allowAskForPermission)
-            locationManager.checkPermissionAndRequest(REQUEST_LOCATION_PERMISSION_CODE)
     }
 
     private fun openFragment() {
+        locationManager.checkPermissionAndRequest(REQUEST_LOCATION_PERMISSION_CODE)
         if (!locationManager.isLocationPermissionGranted()) {
             openFragment(NoPermissionFragment.TAG, { NoPermissionFragment() })
-        } else if (!locationManager.isLocationEnabled()) {
-            openFragment(NotEnabledFragment.TAG, { NotEnabledFragment() })
         } else {
-            openFragment(LocationEnabledFragment.TAG, { LocationEnabledFragment() })
+            locationManager.locationDetection { onResume() }
+            if (!locationManager.isLocationEnabled()) {
+                openFragment(NotEnabledFragment.TAG, { NotEnabledFragment() })
+            } else {
+                openFragment(LocationEnabledFragment.TAG, { LocationEnabledFragment() })
+            }
         }
     }
 
-    private fun openFragment(tag: String, instantiateFragment : () -> Fragment) {
+    private fun openFragment(tag: String, instantiateFragment: () -> Fragment) {
         if (supportFragmentManager.findFragmentByTag(tag) == null) {
             supportFragmentManager.beginTransaction().replace(R.id.container, instantiateFragment(), tag).commit()
         }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        locationManager.removeSwitchStateReceiver()
     }
 
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
@@ -59,3 +70,4 @@ class MainActivity : AppCompatActivity() {
         }
     }
 }
+
