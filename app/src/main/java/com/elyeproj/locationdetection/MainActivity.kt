@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.app.AppCompatActivity
 
-
 class MainActivity : AppCompatActivity() {
 
     companion object {
@@ -20,11 +19,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        openFragment()
+        if (!locationManager.checkPermissionAndRequest(REQUEST_LOCATION_PERMISSION_CODE)) {
+            openFragment()
+        }
     }
 
     private fun openFragment() {
-        locationManager.checkPermissionAndRequest(REQUEST_LOCATION_PERMISSION_CODE)
         if (!locationManager.isLocationPermissionGranted()) {
             openFragment(NoPermissionFragment.TAG, { NoPermissionFragment() })
         } else {
@@ -51,18 +51,7 @@ class MainActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
-            REQUEST_LOCATION_PERMISSION_CODE -> {
-                locationManager.requestLocationPermissionResult(grantResults, permissions,
-                        onSuccess = {
-                            // openPlaceMapFragment()
-                        },
-                        onReject = {
-                            // openErrorFragmentPermissionRequest()
-                        },
-                        onDenied = {
-                            // openErrorFragmentPermissionRequest()
-                        })
-            }
+            REQUEST_LOCATION_PERMISSION_CODE -> { openFragment() }
         }
     }
 }

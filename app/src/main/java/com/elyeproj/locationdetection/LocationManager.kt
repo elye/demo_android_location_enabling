@@ -11,15 +11,18 @@ import android.location.LocationManager
 import android.os.Build
 import android.support.v4.content.ContextCompat
 
-class LocationManager(val activity: Activity) {
+class LocationManager(private val activity: Activity) {
 
-    private var allowAskForPermission = true
+    private var askedForPermission = false
     private var gpsSwitchStateReceiver: BroadcastReceiver? = null
 
-    fun checkPermissionAndRequest(permissionCode: Int) {
-        if (!isLocationPermissionGranted() && allowAskForPermission) {
+    fun checkPermissionAndRequest(permissionCode: Int): Boolean {
+        if (!askedForPermission) {
             activity.requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), permissionCode)
+            askedForPermission = true
+            return true
         }
+        return false
     }
 
     fun isLocationPermissionGranted(): Boolean {
@@ -31,16 +34,14 @@ class LocationManager(val activity: Activity) {
 
     fun requestLocationPermissionResult(grantResults: IntArray,
                                         permissions: Array<String>, onSuccess: () -> Unit = {},
-                                        onReject: () -> Unit = {}, onDenied: () -> Unit = {}) {
+                                        onDontAskAgain: () -> Unit = {}, onDenied: () -> Unit = {}) {
         if (permissions.isEmpty()) return
         if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             onSuccess()
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M
-                && !activity.shouldShowRequestPermissionRationale(permissions[0])) {
-            allowAskForPermission = false
-            onReject()
+                && !activity.shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)) {
+            onDontAskAgain()
         } else {
-            allowAskForPermission = false
             onDenied()
         }
     }
