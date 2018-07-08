@@ -51,7 +51,13 @@ class MainActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         when (requestCode) {
-            REQUEST_LOCATION_PERMISSION_CODE -> { openFragment() }
+            REQUEST_LOCATION_PERMISSION_CODE -> {
+                openFragment()
+                // Calling this just as demo, it doesn't do anything for now
+                locationManager.requestLocationPermissionResult(grantResults, permissions,
+                        onSuccess = {}, onDontAskAgain = {}, onDenied = {}
+                )
+            }
         }
     }
 }
