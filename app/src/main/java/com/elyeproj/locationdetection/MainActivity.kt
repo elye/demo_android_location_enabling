@@ -26,13 +26,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun openFragment() {
         if (!locationManager.isLocationPermissionGranted()) {
-            openFragment(NoPermissionFragment.TAG, { NoPermissionFragment() })
+            openFragment(NoPermissionFragment.TAG) { NoPermissionFragment() }
         } else {
             locationManager.locationDetection { onResume() }
             if (!locationManager.isLocationEnabled()) {
-                openFragment(NotEnabledFragment.TAG, { NotEnabledFragment() })
+                openFragment(NotEnabledFragment.TAG) { NotEnabledFragment() }
             } else {
-                openFragment(LocationEnabledFragment.TAG, { LocationEnabledFragment() })
+                openFragment(LocationEnabledFragment.TAG) { LocationEnabledFragment() }
             }
         }
     }
